@@ -1,0 +1,159 @@
+import pygame
+import random
+import time
+import turtle as tt
+import sys
+
+pygame.init()
+pantalla = pygame.display.set_mode((1440, 720))
+pygame.display.set_caption("Minecraft 2D")
+ejecution = True
+fuente = pygame.font.SysFont("Arial", 30)
+fuente1=pygame.font.SysFont("Arial", 23)
+screen_menu='menu'
+seleccion_mundo = "own"
+contador=0
+
+#-------Splash-------------------------------#
+spash=['As seen on TV!','The End?','Should not be played while driving.','1% sugar!','Ph1lza had a good run!',
+       'Awesome!','100% pure!','May contain nuts!','All is full of love!','More polygons!','Limited edition!',
+       'Flashing letters!','Made by Notch!','It´s here!','Put that cookie down!','Best in class!','It´s finished!',
+       'Kind of dragon free!','Call you Mom!','Excitement!','More than 500 sold!','One of a kind!','Heaps of hits on YouTube!',
+       'Indev!','Spiders everywhere!','Check it out!','Holy cow, man!','It´s a game!','Made in China!',
+       'Uses LWJGL!','Reticulating splines!','Minecraft2D!','Yaaay!','Singleplayer!','Keyboard compatible!',
+       'Undocumented!','Ingots!','Exploding creepers!','That´s no moon!','L33t!','Create!','Survive!',
+       'Dungeon!','Exclusive!','The bee´s knees!','Down with O.P.P.!','Closed source!','Classy!',
+       'Wow!','Not on steam!','Oh man!','Awesome community!','Pixels!','Teetsuuuuoooo!','Kaaneeeedaaaa!',
+       'Now with difficulty!','Enhanced!','90% bug free!','Pretty!','12 herbs and spices!',
+       'Fat free!','Absolutely no memes!','Free dental!','Ask your doctor!','Minors welcome!','Cloud computing!',
+       'Legal in Finland!','Hard to label!','Technically good!','Technically good!','Indie!','GOTY!','Ceci n´est pas une title screen!',
+       'Euclidian!','Now in 2D!','Inspirational!','Herregud!','Complex cellular automata!','Yes, sir!','Played by cowboys!',
+       'OpenGL 1.2!','Thousands of colors!','Try it!','Age of Wonders is better!','Try the mushroom stew!','Sensational!','Hot tamale, hot hot tamale!',
+       'Play him off, keyboard cat!','Guaranteed!','Macroscopic!','Bring it on!','Random splash!']
+def nuevo_splash():
+    texto = random.choice(spash)
+    splash = fuente.render(texto, True, (255, 255, 85))
+    return pygame.transform.rotate(splash, 20)
+
+splash_rotado = nuevo_splash()
+#-------Sección para cargar personajes-------#
+#-menu-#
+logo = pygame.image.load("Minecraft2D.png").convert_alpha()
+jugar = pygame.image.load("Singleplayer.png").convert_alpha()
+configuracion = pygame.image.load("Options.png").convert_alpha()
+salir = pygame.image.load("Exit.png").convert_alpha()
+#-mundos-#
+pred_ON = pygame.image.load("Determinet_ON.png").convert_alpha()
+pred_OFF = pygame.image.load("Determinet_OFF.png").convert_alpha()
+own_ON = pygame.image.load("OwnWorld_ON.png").convert_alpha()
+own_OFF = pygame.image.load("OwnWorld_OFF.png").convert_alpha()
+back = pygame.image.load("Back.png").convert_alpha()
+texto = fuente1.render(str(contador), True, (0,0,0))
+texto1 = fuente1.render(str('/3'), True, (0,0,0))
+fondo=pygame.image.load("Fondo_Mundo.png").convert_alpha()
+#-----------Sección de coliciones-----------#
+jugar_rect = jugar.get_rect(topleft=(540, 240))
+
+configuracion_rect = configuracion.get_rect(topleft=(540, 380))
+
+salir_rect = salir.get_rect(topleft=(540, 520))
+
+pred_rect = pred_ON.get_rect(topleft=(560, 100))
+own_rect = own_ON.get_rect(topleft=(230, 100))
+
+volver_rect = back.get_rect(topleft=(890, 100))
+#-------------------------------------------#
+
+text = random.choice(spash)
+splash = fuente.render(text, True, (255, 255, 85))
+splash_rotado = pygame.transform.rotate(splash, 20)
+
+while ejecution:
+    mouse_pos = pygame.mouse.get_pos()
+    for evento in pygame.event.get():
+
+        if evento.type == pygame.QUIT:
+            ejecution = False
+
+        if evento.type == pygame.MOUSEBUTTONDOWN:
+
+            if screen_menu == 'menu':
+
+                if jugar_rect.collidepoint(evento.pos):
+                    pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+                    screen_menu = 'juego_selection'
+
+                elif configuracion_rect.collidepoint(evento.pos):
+                    screen_menu = 'options_selection'
+
+                elif salir_rect.collidepoint(evento.pos):
+                    pygame.quit()
+                    sys.exit()
+
+            elif screen_menu == 'juego_selection':
+
+                if volver_rect.collidepoint(evento.pos):
+                    screen_menu = 'menu'
+                    splash_rotado = nuevo_splash()
+                    pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+
+                elif pred_rect.collidepoint(evento.pos):
+                    seleccion_mundo = "pred"
+
+                elif own_rect.collidepoint(evento.pos):
+                    seleccion_mundo = "own"
+    if screen_menu=='menu':
+        #---logo images---#
+        pantalla.fill((135, 206, 235))
+        pantalla.blit(logo, (507.5, 35))
+        pantalla.blit(jugar, (540, 240))
+        pantalla.blit(configuracion, (540, 380))
+        pantalla.blit(salir, (540, 520))
+        pantalla.blit(splash_rotado, (870, 80))
+        #----hitbox-------#
+        pantalla.blit(jugar, jugar_rect)
+        pantalla.blit(configuracion, configuracion_rect)
+        pantalla.blit(salir, salir_rect)
+        #hitbox funciones-#
+        if evento.type == pygame.MOUSEBUTTONDOWN:
+            if jugar_rect.collidepoint(evento.pos):
+                screen_menu='juego_selection'
+            elif configuracion_rect.collidepoint(evento.pos):
+                screen_menu='options_selection'
+            elif salir_rect.collidepoint(evento.pos):
+                pygame.quit()
+                sys.exit()
+        # ----Mouse----#
+        if (jugar_rect.collidepoint(mouse_pos) or configuracion_rect.collidepoint(mouse_pos) or salir_rect.collidepoint(mouse_pos)):
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+        else:
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+    elif screen_menu=='juego_selection':
+        #----imagenes----#
+        pantalla.fill((200, 220, 255))
+        pantalla.blit(fondo,(230,230))
+        pantalla.blit(back, (890, 100))
+        #---hitbox---#
+        pantalla.blit(back, volver_rect)
+        if seleccion_mundo == "own":
+            pantalla.blit(own_ON, (230, 100))
+            pantalla.blit(pred_OFF, (560, 100))
+
+        elif seleccion_mundo == "pred":
+            pantalla.blit(own_OFF, (230, 100))
+            pantalla.blit(pred_ON, (560, 100))
+        pantalla.blit(texto, (400, 165))
+        pantalla.blit(texto1, (410, 165))
+        #---Coliciones---#
+        #----------------#
+        if volver_rect.collidepoint(mouse_pos) or pred_rect.collidepoint(mouse_pos) or own_rect.collidepoint(mouse_pos):
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+        else:
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+    elif screen_menu=='options_selection':
+        pantalla.fill((135, 206, 235))
+    pygame.display.flip()
+
+
+pygame.quit()
+sys.exit()
