@@ -1,0 +1,39 @@
+from Version2 import draw_player,draw_world,draw_world_empty,move_player,build,collect_block,destroy_block,back_colors,block_collected,block_names
+from colorama import Back, init
+import copy
+
+start=input('$')
+
+x = 1
+y = 9
+x1 = 2
+y1 = 10
+
+see_world,real_see_world=draw_world_empty()
+print('$Welcome to the world of minecraft 2d xyz')
+while start == 'init':
+    try:
+        real_see_world = copy.deepcopy(see_world)
+        draw_player(x,y,x1,y1,real_see_world)
+        draw_world((x, y), real_see_world)
+
+        action = input('$')
+        commands = []
+        action = action.split(',')
+        actions = [xp.strip() for xp in action]
+        for yg in actions:
+            commands.append(yg.split())
+        for comando in commands:
+
+            if len(comando) == 2 and comando[0].isdigit():
+                x, y, x1, y1 = move_player(comando, x, y, x1, y1)
+
+            build(comando, x1, y1)
+            collect_block(comando, x1, y1)
+            destroy_block(comando, x1, y1)
+
+            for bloque, cantidad in block_collected.items():
+                if cantidad > 0:
+                    print(f"{bloque}: {cantidad}")
+    except:
+        print('invalid operation')
