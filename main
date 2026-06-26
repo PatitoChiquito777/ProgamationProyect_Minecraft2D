@@ -1,159 +1,215 @@
-import pygame
-import random
-import time
-import turtle as tt
-import sys
+from colorama import Back, init
+import copy
 
-pygame.init()
-pantalla = pygame.display.set_mode((1440, 720))
-pygame.display.set_caption("Minecraft 2D")
-ejecution = True
-fuente = pygame.font.SysFont("Arial", 30)
-fuente1=pygame.font.SysFont("Arial", 23)
-screen_menu='menu'
-seleccion_mundo = "own"
-contador=0
+start=input('$')
 
-#-------Splash-------------------------------#
-spash=['As seen on TV!','The End?','Should not be played while driving.','1% sugar!','Ph1lza had a good run!',
-       'Awesome!','100% pure!','May contain nuts!','All is full of love!','More polygons!','Limited edition!',
-       'Flashing letters!','Made by Notch!','It´s here!','Put that cookie down!','Best in class!','It´s finished!',
-       'Kind of dragon free!','Call you Mom!','Excitement!','More than 500 sold!','One of a kind!','Heaps of hits on YouTube!',
-       'Indev!','Spiders everywhere!','Check it out!','Holy cow, man!','It´s a game!','Made in China!',
-       'Uses LWJGL!','Reticulating splines!','Minecraft2D!','Yaaay!','Singleplayer!','Keyboard compatible!',
-       'Undocumented!','Ingots!','Exploding creepers!','That´s no moon!','L33t!','Create!','Survive!',
-       'Dungeon!','Exclusive!','The bee´s knees!','Down with O.P.P.!','Closed source!','Classy!',
-       'Wow!','Not on steam!','Oh man!','Awesome community!','Pixels!','Teetsuuuuoooo!','Kaaneeeedaaaa!',
-       'Now with difficulty!','Enhanced!','90% bug free!','Pretty!','12 herbs and spices!',
-       'Fat free!','Absolutely no memes!','Free dental!','Ask your doctor!','Minors welcome!','Cloud computing!',
-       'Legal in Finland!','Hard to label!','Technically good!','Technically good!','Indie!','GOTY!','Ceci n´est pas une title screen!',
-       'Euclidian!','Now in 2D!','Inspirational!','Herregud!','Complex cellular automata!','Yes, sir!','Played by cowboys!',
-       'OpenGL 1.2!','Thousands of colors!','Try it!','Age of Wonders is better!','Try the mushroom stew!','Sensational!','Hot tamale, hot hot tamale!',
-       'Play him off, keyboard cat!','Guaranteed!','Macroscopic!','Bring it on!','Random splash!']
-def nuevo_splash():
-    texto = random.choice(spash)
-    splash = fuente.render(texto, True, (255, 255, 85))
-    return pygame.transform.rotate(splash, 20)
+back_colors={0:'LIGHTWHITE_EX',
+              1:'CYAN',
+              2:'MAGENTA',
+              3:'BLACK',
+              4:'RED',
+              5:'GREEN',
+              6:'YELLOW',
+              7:'BLUE',
+              8:'LIGHTBLACK_EX'}
 
-splash_rotado = nuevo_splash()
-#-------Sección para cargar personajes-------#
-#-menu-#
-logo = pygame.image.load("Minecraft2D.png").convert_alpha()
-jugar = pygame.image.load("Singleplayer.png").convert_alpha()
-configuracion = pygame.image.load("Options.png").convert_alpha()
-salir = pygame.image.load("Exit.png").convert_alpha()
-#-mundos-#
-pred_ON = pygame.image.load("Determinet_ON.png").convert_alpha()
-pred_OFF = pygame.image.load("Determinet_OFF.png").convert_alpha()
-own_ON = pygame.image.load("OwnWorld_ON.png").convert_alpha()
-own_OFF = pygame.image.load("OwnWorld_OFF.png").convert_alpha()
-back = pygame.image.load("Back.png").convert_alpha()
-texto = fuente1.render(str(contador), True, (0,0,0))
-texto1 = fuente1.render(str('/3'), True, (0,0,0))
-fondo=pygame.image.load("Fondo_Mundo.png").convert_alpha()
-#-----------Sección de coliciones-----------#
-jugar_rect = jugar.get_rect(topleft=(540, 240))
+block_collected={'earth':0,
+                 'wood':0,
+                 'grass':0,
+                 'sun':0,
+                 'water':0,
+                 'stone':0}
 
-configuracion_rect = configuracion.get_rect(topleft=(540, 380))
+block_names = {
+    3:'earth',
+    4:'wood',
+    5:'grass',
+    6:'sun',
+    7:'water',
+    8:'stone'
+}
 
-salir_rect = salir.get_rect(topleft=(540, 520))
+init(autoreset=True)
 
-pred_rect = pred_ON.get_rect(topleft=(560, 100))
-own_rect = own_ON.get_rect(topleft=(230, 100))
+def destroy_block(coma,x1,y1):
+    if coma[0] == 'destroy':
+        try:
+            if see_world[y1][x1] != 0:
+                see_world[y1][x1] = 0
+        except:
+            print('invalid operation in destroy block')
 
-volver_rect = back.get_rect(topleft=(890, 100))
-#-------------------------------------------#
+def collect_block(coma,x1,y1):
+    if coma[0] == 'extract':
+        try:
+            if see_world[y1][x1] != 0:
+                for gg in range(1, 9):
+                    if see_world[y1][x1] == gg:
+                        block_collected[block_names[see_world[y1][x1]]] += 1
+                        see_world[y1][x1] = 0
+        except:
+            print('invalid operation in collect block')
 
-text = random.choice(spash)
-splash = fuente.render(text, True, (255, 255, 85))
-splash_rotado = pygame.transform.rotate(splash, 20)
+def build(coma,x1,y1):
+    if coma[0] == 'build':
+        try:
+            bloque = coma[1]
+            if bloque == 'earth':
+                if see_world[y1][x1] == 0 and block_collected['earth'] > 0:
+                    see_world[y1][x1] = 3
+                    block_collected['earth'] -= 1
+            elif bloque == 'wood':
+                if see_world[y1][x1] == 0 and block_collected['wood'] > 0:
+                    see_world[y1][x1] = 4
+                    block_collected['wood'] -= 1
+            elif bloque == 'grass':
+                if see_world[y1][x1] == 0 and block_collected['grass'] > 0:
+                    see_world[y1][x1] = 5
+                    block_collected['grass'] -= 1
+            elif bloque == 'sun':
+                if see_world[y1][x1] == 0 and block_collected['sun'] > 0:
+                    see_world[y1][x1] = 6
+                    block_collected['sun'] -= 1
+            elif bloque == 'water':
+                if see_world[y1][x1] == 0 and block_collected['water'] > 0:
+                    see_world[y1][x1] = 7
+                    block_collected['water'] -= 1
+            elif bloque == 'stone':
+                if see_world[y1][x1] == 0 and block_collected['stone'] > 0:
+                    see_world[y1][x1] = 8
+                    block_collected['stone'] -= 1
+        except:
+            print('invalid operation in build')
 
-while ejecution:
-    mouse_pos = pygame.mouse.get_pos()
-    for evento in pygame.event.get():
+def move_player(coma, x, y, x1, y1):
 
-        if evento.type == pygame.QUIT:
-            ejecution = False
+    try:
 
-        if evento.type == pygame.MOUSEBUTTONDOWN:
+        nuevo_x = x
+        nuevo_y = y
+        nuevo_x1 = x1
+        nuevo_y1 = y1
 
-            if screen_menu == 'menu':
+        if coma[1].lower() == 'up' or coma[1].lower() == 'top':
+            paso = int(coma[0])
+            nuevo_y -= paso
+            nuevo_y1 -= paso
 
-                if jugar_rect.collidepoint(evento.pos):
-                    pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
-                    screen_menu = 'juego_selection'
+        elif coma[1].lower() == 'down' or coma[1].lower() == 'dn':
+            paso = int(coma[0])
+            nuevo_y += paso
+            nuevo_y1 += paso
 
-                elif configuracion_rect.collidepoint(evento.pos):
-                    screen_menu = 'options_selection'
+        elif coma[1].lower() == 'right' or coma[1].lower() == 'rt':
+            paso = int(coma[0])
+            nuevo_x += paso
+            nuevo_x1 += paso
 
-                elif salir_rect.collidepoint(evento.pos):
-                    pygame.quit()
-                    sys.exit()
+        elif coma[1].lower() == 'left' or coma[1].lower() == 'lt':
+            paso = int(coma[0])
+            nuevo_x -= paso
+            nuevo_x1 -= paso
 
-            elif screen_menu == 'juego_selection':
-
-                if volver_rect.collidepoint(evento.pos):
-                    screen_menu = 'menu'
-                    splash_rotado = nuevo_splash()
-                    pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
-
-                elif pred_rect.collidepoint(evento.pos):
-                    seleccion_mundo = "pred"
-
-                elif own_rect.collidepoint(evento.pos):
-                    seleccion_mundo = "own"
-    if screen_menu=='menu':
-        #---logo images---#
-        pantalla.fill((135, 206, 235))
-        pantalla.blit(logo, (507.5, 35))
-        pantalla.blit(jugar, (540, 240))
-        pantalla.blit(configuracion, (540, 380))
-        pantalla.blit(salir, (540, 520))
-        pantalla.blit(splash_rotado, (870, 80))
-        #----hitbox-------#
-        pantalla.blit(jugar, jugar_rect)
-        pantalla.blit(configuracion, configuracion_rect)
-        pantalla.blit(salir, salir_rect)
-        #hitbox funciones-#
-        if evento.type == pygame.MOUSEBUTTONDOWN:
-            if jugar_rect.collidepoint(evento.pos):
-                screen_menu='juego_selection'
-            elif configuracion_rect.collidepoint(evento.pos):
-                screen_menu='options_selection'
-            elif salir_rect.collidepoint(evento.pos):
-                pygame.quit()
-                sys.exit()
-        # ----Mouse----#
-        if (jugar_rect.collidepoint(mouse_pos) or configuracion_rect.collidepoint(mouse_pos) or salir_rect.collidepoint(mouse_pos)):
-            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
         else:
-            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
-    elif screen_menu=='juego_selection':
-        #----imagenes----#
-        pantalla.fill((200, 220, 255))
-        pantalla.blit(fondo,(230,230))
-        pantalla.blit(back, (890, 100))
-        #---hitbox---#
-        pantalla.blit(back, volver_rect)
-        if seleccion_mundo == "own":
-            pantalla.blit(own_ON, (230, 100))
-            pantalla.blit(pred_OFF, (560, 100))
+            return x, y, x1, y1
 
-        elif seleccion_mundo == "pred":
-            pantalla.blit(own_OFF, (230, 100))
-            pantalla.blit(pred_ON, (560, 100))
-        pantalla.blit(texto, (400, 165))
-        pantalla.blit(texto1, (410, 165))
-        #---Coliciones---#
-        #----------------#
-        if volver_rect.collidepoint(mouse_pos) or pred_rect.collidepoint(mouse_pos) or own_rect.collidepoint(mouse_pos):
-            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
-        else:
-            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
-    elif screen_menu=='options_selection':
-        pantalla.fill((135, 206, 235))
-    pygame.display.flip()
+        filas = len(see_world)
+        columnas = len(see_world[0])
 
+        # jugador (3 bloques de alto)
+        if (
+            nuevo_x < 0 or
+            nuevo_x >= columnas or
+            nuevo_y < 0 or
+            nuevo_y + 2 >= filas or
+            nuevo_x1 < 0 or
+            nuevo_x1 >= columnas or
+            nuevo_y1 < 0 or
+            nuevo_y1 >= filas
+        ):
+            print("invalid operation in move player")
+            return x, y, x1, y1
 
-pygame.quit()
-sys.exit()
+        return nuevo_x, nuevo_y, nuevo_x1, nuevo_y1
+
+    except:
+        print('invalid operation in move player')
+        return x, y, x1, y1
+
+def draw_player(x,y,x1,y1,real_see_world):
+
+    real_see_world[y][x] = 1
+    real_see_world[y+1][x] = 1
+    real_see_world[y+2][x] = 1
+
+    real_see_world[y1][x1] = 2
+
+def draw_world_empty():
+    see_world = []
+    with open("plantilla_mundo_xyz.txt", "r") as archivo:
+        back_mundo = [linea.split() for linea in archivo]
+
+    for fila in back_mundo:
+        nueva_fila = []
+        for valor in fila:
+            nueva_fila.append(int(valor))
+        see_world.append(nueva_fila)
+    real_see_world= copy.deepcopy(see_world)
+    return see_world,real_see_world
+
+def draw_world(position, real_see_world):
+
+    x, y = position
+
+    inicio = x - 5
+
+    if inicio < 0:
+        inicio = 0
+
+    if inicio > 10:
+        inicio = 10
+
+    fin = inicio + 30
+
+    for fila in range(20):
+        for columna in range(inicio, fin):
+
+            color = back_colors[real_see_world[fila][columna]]
+
+            print(getattr(Back, color) + "   ", end="")
+
+        print()
+
+x = 1
+y = 9
+x1 = 2
+y1 = 10
+
+see_world,real_see_world=draw_world_empty()
+
+while start == 'init':
+    try:
+        real_see_world = copy.deepcopy(see_world)
+        draw_player(x,y,x1,y1,real_see_world)
+        draw_world((x, y), real_see_world)
+
+        action = input('')
+        commands = []
+        action = action.split(',')
+        actions = [xp.strip() for xp in action]
+        for yg in actions:
+            commands.append(yg.split())
+        for comando in commands:
+
+            if len(comando) == 2 and comando[0].isdigit():
+                x, y, x1, y1 = move_player(comando, x, y, x1, y1)
+
+            build(comando, x1, y1)
+            collect_block(comando, x1, y1)
+            destroy_block(comando, x1, y1)
+
+            for bloque, cantidad in block_collected.items():
+                if cantidad > 0:
+                    print(f"{bloque}: {cantidad}")
+    except:
+        print('invalid operation')
